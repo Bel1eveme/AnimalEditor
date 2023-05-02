@@ -22,32 +22,50 @@ namespace AnimalEditor.View
 
         private void BuildDataGridView(Type type)
         {
-            var dataGridView = new DataGridView();  
+            ClearDataGridView(objectsDataGridView);
+
             foreach (var propertyInfo in type.GetProperties())
             {
-                Type newType = propertyInfo.PropertyType;   
+                Type newType = propertyInfo.PropertyType;
                 if (propertyInfo.PropertyType == Type.GetType("System.Int32"))
-                    dataGridView.Columns.Add(DataGridViewColumnCreator.GetIntColumn(propertyInfo));
+                    objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetIntColumn(propertyInfo));
                 else if (propertyInfo.PropertyType == Type.GetType("System.String"))
-                    dataGridView.Columns.Add(DataGridViewColumnCreator.GetTextColumn(propertyInfo));
+                    objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetTextColumn(propertyInfo));
                 else if (propertyInfo.PropertyType == Type.GetType("System.DateOnly"))
-                    dataGridView.Columns.Add(DataGridViewColumnCreator.GetTextColumn(propertyInfo));
+                    objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetTextColumn(propertyInfo));
+                else if (propertyInfo.PropertyType == Type.GetType("System.TimeOnly"))
+                    objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetEnumColumn(propertyInfo));
                 else if (propertyInfo.PropertyType.IsEnum)
-                    dataGridView.Columns.Add(DataGridViewColumnCreator.GetEnumColumn(propertyInfo));
+                    objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetEnumColumn(propertyInfo));
+                
                 else
                 {
                     throw new Exception("No column creator for this type.");
                 }
             }
 
-            objectsDataGridView = dataGridView;
-            objectsDataGridView.DataSource =
-                _dataManager.GetDataTable(type);
+            objectsDataGridView.DataSource = _dataManager.GetDataTable(type);
+
+            Console.WriteLine(@"Hello");
         }
 
+        private void CreateColumnsForObject(DataGridView dataGridView, Type type)
+        {
+            dataGridView.DataSource = null;
+            dataGridView.Rows.Clear();
+            dataGridView.Columns.Clear();
+        }
+
+        private void ClearDataGridView(DataGridView dataGridView)
+        {
+            dataGridView.DataSource = null;
+            dataGridView.Rows.Clear();
+            dataGridView.Columns.Clear();
+        }
         private void classDomainUpDown_SelectedItemChanged(object sender, EventArgs e)
         {
             BuildDataGridView(ReflexionAnalyzer.GetTypeByString(classDomainUpDown.SelectedItem.ToString()!));
         }
+
     }
 }
