@@ -46,6 +46,7 @@
             objectsDataGridView.RowTemplate.Height = 29;
             objectsDataGridView.Size = new Size(776, 388);
             objectsDataGridView.TabIndex = 0;
+            objectsDataGridView.CellDoubleClick += objectsDataGridView_CellDoubleClick;
             // 
             // classDomainUpDown
             // 
@@ -65,6 +66,7 @@
             saveButton.TabIndex = 3;
             saveButton.Text = "Save";
             saveButton.UseVisualStyleBackColor = true;
+            saveButton.Click += saveButton_Click;
             // 
             // editButton
             // 

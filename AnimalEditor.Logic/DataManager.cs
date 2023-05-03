@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 using AnimalEditor.Model.Animals;
 
@@ -42,28 +37,9 @@ namespace AnimalEditor.Model
                 else
                 {
                     foreach (var subPropertyInfo in propertyInfo.PropertyType.GetProperties())
-                        table.Columns.Add(new DataColumn(propertyInfo.Name, propertyInfo.PropertyType));
+                        table.Columns.Add(new DataColumn(subPropertyInfo.Name, subPropertyInfo.PropertyType));
                 }
             }
-
-            /*
-
-            DataColumn ageColumn = new DataColumn("Age", Type.GetType("System.Int32"));
-            table.Columns.Add(ageColumn);
-
-            DataColumn timeColumn = new DataColumn("HuntTimeStart", Type.GetType("System.TimeOnly"));
-            table.Columns.Add(timeColumn);
-
-            DataColumn dateColumn = new DataColumn("BirthDate", Type.GetType("System.DateOnly"));
-            table.Columns.Add(dateColumn);
-
-            DataColumn canFlyColumn = new DataColumn("CanFly", Type.GetType("System.Boolean"));
-            table.Columns.Add(canFlyColumn);
-
-            DataColumn catBreedColumn = new DataColumn("CatColor", typeof(CatColor));
-            table.Columns.Add(catBreedColumn);
-
-            */
 
             return table;
         }
