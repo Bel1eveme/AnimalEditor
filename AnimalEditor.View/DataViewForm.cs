@@ -89,17 +89,17 @@ namespace AnimalEditor.View
         private ValueForm GetFormByType(Form caller, Type type, object value)
         {
             if (type == Type.GetType("System.Int32"))
-                return ValueFormCreator.GetIntForm(caller, type, value);
+                return ValueFormCreator.GetIntForm(caller, value);
             if (type == Type.GetType("System.String"))
-                return ValueFormCreator.GetTextForm(caller, type, value);
+                return ValueFormCreator.GetTextForm(caller, value);
             if (type == Type.GetType("System.DateOnly"))
-                return ValueFormCreator.GetDateForm(caller, type, value); ;
+                return ValueFormCreator.GetDateForm(caller, value); ;
             if (type == Type.GetType("System.TimeOnly"))
-                return ValueFormCreator.GetTimeForm(caller, type, value);
+                return ValueFormCreator.GetTimeForm(caller, value);
             if (type == Type.GetType("System.Boolean"))
-                return ValueFormCreator.GetCheckForm(caller, type, value); ;
+                return ValueFormCreator.GetCheckForm(caller, value); ;
             if (type.IsEnum)
-                return ValueFormCreator.GetEnumForm(caller, type, value);
+                return ValueFormCreator.GetEnumForm(caller, value);
             throw new Exception("No column creator for this type.");
         }
     }
