@@ -314,7 +314,7 @@ namespace AnimalEditor.View
 
         private Animal GetCopy(Animal animal)
         {
-            Animal newAnimal = GetNewAnimal(animal.GetType());
+            var newAnimal = GetNewAnimal(animal.GetType());
             foreach (var property in animal.GetType().GetProperties())
             {
                 var propertyType = property.PropertyType;
