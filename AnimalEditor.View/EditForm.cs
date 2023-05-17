@@ -153,6 +153,18 @@ namespace AnimalEditor.View
             return control;
         }
 
+        private Control GetCheckBox(PropertyInfo propertyInfo, object value)
+        {
+            var control = new CheckBox()
+            {
+                Height = ControlHeight,
+                Width = ControlWidth,
+                AutoSize = true,
+                DataBindings = { new Binding("Checked", value, propertyInfo.Name) },
+            };
+            return control;
+        }
+
         public Control GetDatePiker(PropertyInfo propertyInfo, object value)
         {
             var binding = new Binding("Value", value, propertyInfo.Name);
@@ -187,23 +199,11 @@ namespace AnimalEditor.View
             return control;
         }
 
-        private Control GetCheckBox(PropertyInfo propertyInfo, object value)
-        {
-            var control = new CheckBox()
-            {
-                Height = ControlHeight,
-                Width = ControlWidth,
-                AutoSize = true,
-                DataBindings = { new Binding("Checked", value, propertyInfo.Name) },
-            };
-            return control;
-        }
-
         public Control GetComboBox(PropertyInfo propertyInfo, object value)
         {
             var binding = new Binding("SelectedItem", value, propertyInfo.Name);
-            //binding.Format += TimeOnlyToDateTime;
-            //binding.Parse += DateTimeToTimeOnly;
+            binding.Format += CustomEnumValueToEnumValue;
+            binding.Parse += EnumValueToCustomEnumValue;
 
             var control = new ComboBox()
             {
@@ -219,22 +219,10 @@ namespace AnimalEditor.View
 
             control.DisplayMember = "Display";
             control.ValueMember = "Value";
-            //control.DataSource = enumValues;
-
-            var objects = new object[enumValues.Count];
-            for (int i = 0; i < enumValues.Count; i++)
-            {
-                objects[i] = enumValues[i];
-            }
-
-            control.Items.AddRange(objects);
-
+            control.DataSource = enumValues;
             control.DataBindings.Add(binding);
-            //control.DataBindings.Add(new Binding("SelectedItem", value, propertyInfo.Name));
 
             return control;
-
-            
         }
 
         private void ButtonClickHandler(object? sender, EventArgs e)
@@ -283,22 +271,21 @@ namespace AnimalEditor.View
             e.Value = date + timeOnly.ToTimeSpan();
         }
 
-        //private void EnumValueToTimeOnly(object? sender, ConvertEventArgs e)
-        //{
-        //    if (e.DesiredType != typeof(TimeOnly)) return;
-        //    if (e.Value is not DateTime dateTime) return;
+        private void CustomEnumValueToEnumValue(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(EnumValue)) return;
+            if (e.Value is not CatColor catColor) return;
 
-        //    e.Value = TimeOnly.FromDateTime(dateTime);
-        //}
+            e.Value = new EnumValue(e.Value.ToString()!, (int)e.Value);
+        }
 
-        //private void TimeOnlyToDateTime(object? sender, ConvertEventArgs e)
-        //{
-        //    if (e.DesiredType != typeof(DateTime)) return;
-        //    if (e.Value is not TimeOnly timeOnly) return;
+        private void EnumValueToCustomEnumValue(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(CatColor)) return;
+            if (e.Value is not EnumValue enumValue) return;
 
-        //    var date = new DateTime(2022, 1, 1);
-        //    e.Value = date + timeOnly.ToTimeSpan();
-        //}
+            e.Value = enumValue.Value;
+        }
 
         private Control GetControlByType(PropertyInfo propertyInfo, object value)
         {
