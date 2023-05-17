@@ -59,7 +59,7 @@ namespace AnimalEditor.Model
 
         public static Type GetTypeByString(string name)
         {
-            return Type.GetType("AnimalEditor.Model.Animals." + name);
+            return Type.GetType("AnimalEditor.Model.Animals." + name)!;
         }
 
     }

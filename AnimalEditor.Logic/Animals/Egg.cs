@@ -2,8 +2,8 @@
 {
     internal class Nest
     {
-        public int Capacity { get; set; }       
+        public int Diameter { get; set; }       
            
-        public Nest(int capacity) => Capacity = capacity;
+        public Nest(int capacity) => Diameter = capacity;
     }
 }

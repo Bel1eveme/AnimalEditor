@@ -12,10 +12,4 @@
     <ProjectReference Include="..\AnimalEditor.Logic\AnimalEditor.Model.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="ValueForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-  </ItemGroup>
-
 </Project>

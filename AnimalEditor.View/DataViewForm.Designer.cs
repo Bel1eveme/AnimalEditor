@@ -28,9 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             objectsDataGridView = new DataGridView();
             classDomainUpDown = new DomainUpDown();
-            saveButton = new Button();
+            addButton = new Button();
             editButton = new Button();
             deleteButton = new Button();
             label1 = new Label();
@@ -39,14 +40,27 @@
             // 
             // objectsDataGridView
             // 
+            objectsDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             objectsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.ControlLightLight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            objectsDataGridView.DefaultCellStyle = dataGridViewCellStyle1;
+            objectsDataGridView.EditMode = DataGridViewEditMode.EditProgrammatically;
             objectsDataGridView.Location = new Point(12, 63);
+            objectsDataGridView.MultiSelect = false;
             objectsDataGridView.Name = "objectsDataGridView";
             objectsDataGridView.RowHeadersWidth = 51;
             objectsDataGridView.RowTemplate.Height = 29;
+            objectsDataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            objectsDataGridView.ShowCellToolTips = false;
+            objectsDataGridView.ShowEditingIcon = false;
             objectsDataGridView.Size = new Size(776, 388);
             objectsDataGridView.TabIndex = 0;
-            objectsDataGridView.CellDoubleClick += objectsDataGridView_CellDoubleClick;
             // 
             // classDomainUpDown
             // 
@@ -57,16 +71,16 @@
             classDomainUpDown.TabIndex = 1;
             classDomainUpDown.SelectedItemChanged += classDomainUpDown_SelectedItemChanged;
             // 
-            // saveButton
+            // addButton
             // 
-            saveButton.Font = new Font("Segoe UI", 14F, FontStyle.Regular, GraphicsUnit.Point);
-            saveButton.Location = new Point(53, 457);
-            saveButton.Name = "saveButton";
-            saveButton.Size = new Size(150, 50);
-            saveButton.TabIndex = 3;
-            saveButton.Text = "Save";
-            saveButton.UseVisualStyleBackColor = true;
-            saveButton.Click += saveButton_Click;
+            addButton.Font = new Font("Segoe UI", 14F, FontStyle.Regular, GraphicsUnit.Point);
+            addButton.Location = new Point(53, 457);
+            addButton.Name = "addButton";
+            addButton.Size = new Size(150, 50);
+            addButton.TabIndex = 3;
+            addButton.Text = "Add";
+            addButton.UseVisualStyleBackColor = true;
+            addButton.Click += saveButton_Click;
             // 
             // editButton
             // 
@@ -77,6 +91,7 @@
             editButton.TabIndex = 4;
             editButton.Text = "Edit";
             editButton.UseVisualStyleBackColor = true;
+            editButton.Click += editButton_Click;
             // 
             // deleteButton
             // 
@@ -87,6 +102,7 @@
             deleteButton.TabIndex = 5;
             deleteButton.Text = "Delete";
             deleteButton.UseVisualStyleBackColor = true;
+            deleteButton.Click += deleteButton_Click;
             // 
             // label1
             // 
@@ -106,7 +122,7 @@
             Controls.Add(label1);
             Controls.Add(deleteButton);
             Controls.Add(editButton);
-            Controls.Add(saveButton);
+            Controls.Add(addButton);
             Controls.Add(classDomainUpDown);
             Controls.Add(objectsDataGridView);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -123,7 +139,7 @@
 
         private DataGridView objectsDataGridView;
         private DomainUpDown classDomainUpDown;
-        private Button saveButton;
+        private Button addButton;
         private Button editButton;
         private Button deleteButton;
         private Label label1;

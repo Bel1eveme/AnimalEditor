@@ -25,7 +25,7 @@ namespace AnimalEditor.Model
             var enumValues = new List<EnumValue>();
             foreach (var value in values)
             {
-                enumValues.Add(new EnumValue(value.ToString(), (int)value));
+                enumValues.Add(new EnumValue(value.ToString()!, (int)value));
             }
 
             col.DataSource = enumValues;
