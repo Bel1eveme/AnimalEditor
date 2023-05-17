@@ -5,55 +5,355 @@ namespace AnimalEditor.View
 {
     public partial class EditForm : Form
     {
+        public Animal CurrentAnimal { get; private set; }
+
         public Animal ResultAnimal { get; private set; }
-        public enum CreationMode { Edit, Add }
+        private enum CreationMode { Edit, Add }
 
         private readonly CreationMode _mode;
 
         private readonly Type _type;
 
-        private Dictionary<PropertyInfo, Control> propertyControls;
+        public bool HasChanged { get; private set; }
 
-        private static bool _hasChanged;
-        public EditForm(Animal animal, CreationMode mode)
+        public EditForm(Animal animal)
         {
             InitializeComponent();
 
+            CurrentAnimal = GetCopy(animal);
             ResultAnimal = animal;
-            _mode = mode;
+            _mode = CreationMode.Edit;
             _type = animal.GetType();
-            _hasChanged = false;
-
-            propertyControls = new Dictionary<PropertyInfo, Control>();
+            HasChanged = false;
 
             CreateForm();
         }
 
-        public EditForm(Type type, CreationMode mode)
+        public EditForm(Type type)
         {
             InitializeComponent();
-            
-            if (Activator.CreateInstance(type) is Animal animal)
-                ResultAnimal = animal;
-            else
+
+            CurrentAnimal = GetNewAnimal(type);
+            ResultAnimal = CurrentAnimal;
+            _mode = CreationMode.Add;
+            _type = type;
+            HasChanged = false;
+
+            CreateForm();
+        }
+
+        private void CreateForm()
+        {
+            var currentXOffset = 200;
+            var currentYOffset = 5;
+
+            Font = new Font(FontFamily.GenericSerif, 14);
+            Height = WindowHeight;
+            Width = WindowWidth;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = _mode == CreationMode.Edit ? @"Edit form" : @"Add form";
+            AutoScroll = true;
+
+            var label = new Label()
             {
-                throw new Exception("GG");
+                Top = currentYOffset,
+                Left = currentXOffset,
+                Text = _type.Name,
+                Height = ButtonHeight,
+                Width = ButtonWidth,
+            };
+            Controls.Add(label);
+            currentYOffset += ButtonHeight;
+
+            foreach (var propertyInfo in _type.GetProperties())
+            {
+                var propertyType = propertyInfo.PropertyType;
+                if (!propertyType.IsClass)
+                {
+                    var panel = CreatePanel(propertyInfo, CurrentAnimal);
+                    panel.Top = currentYOffset;
+                    Controls.Add(panel);
+
+                    currentYOffset += panel.Height;
+                }
+                else
+                {
+                    foreach (var subPropertyInfo in propertyType.GetProperties())
+                    {
+                        var instance = _type.GetProperty(propertyInfo.Name)?.GetValue(CurrentAnimal);
+                        var panel = CreatePanel(subPropertyInfo, instance!, propertyType.Name);
+                        panel.Top = currentYOffset;
+                        Controls.Add(panel);
+
+                        currentYOffset += panel.Height;
+                    }
+                }
             }
 
-            _mode = mode;
-            _type = type;
-            _hasChanged = false;
+            var button = new Button()
+            {
+                Top = currentYOffset,
+                Left = currentXOffset,
+                Text = _mode == CreationMode.Edit ? @"Edit" : @"Add",
+                Height = ButtonHeight,
+                Width = ButtonWidth,
+            };
+            button.Click += ButtonClickHandler;
 
-            propertyControls = new Dictionary<PropertyInfo, Control>();
-
-            CreateForm();
+            Controls.Add(button);
         }
 
-        public List<object> ValuesItself;
+        private FlowLayoutPanel CreatePanel(PropertyInfo propertyInfo, object value, string textBefore = "")
+        {
+            var panel = new FlowLayoutPanel()
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                BorderStyle = BorderStyle.None,
+                WrapContents = false,
+                AutoSize = true,
+                Height = InnerPanelHeight,
+                AutoScroll = true,
+            };
 
-        private List<object> _newValuesItself;
+            var label = new Label()
+            {
+                Text = textBefore + propertyInfo.Name + @":",
+                Height = ControlHeight,
+                Width = ControlWidth,
+                AutoSize = true,
+            };
+            
+            var customControl = GetControlByType(propertyInfo, value);
 
-        private readonly List<(string, Type)> _types;
+            panel.Controls.Add(label);
+            panel.Controls.Add(customControl);
+
+            return panel;
+        }
+
+        public Control GetTextBox(PropertyInfo propertyInfo, object value)
+        {
+            var control = new TextBox()
+            {
+                Height = ControlHeight,
+                Width = ControlWidth,
+                DataBindings = { new Binding("Text", value, propertyInfo.Name) },
+            };
+            return control;
+        }
+
+        public Control GetNumberUpDown(PropertyInfo propertyInfo, object value)
+        {
+            var control = new NumericUpDown()
+            {
+                Height = ControlHeight,
+                Width = ControlWidth,
+                DataBindings = { new Binding("Value", value, propertyInfo.Name) },
+            };
+            return control;
+        }
+
+        public Control GetDatePiker(PropertyInfo propertyInfo, object value)
+        {
+            var binding = new Binding("Value", value, propertyInfo.Name);
+            binding.Format += DateOnlyToDateTime;
+            binding.Parse += DateTimeToDateOnly;
+
+            var control = new DateTimePicker()
+            {
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = @"yyyy/MM/dd",
+                Height = ControlHeight,
+                Width = ControlWidth,
+                DataBindings = { binding },
+            };
+            return control;
+        }
+
+        public Control GetTimePiker(PropertyInfo propertyInfo, object value)
+        {
+            var binding = new Binding("Value", value, propertyInfo.Name);
+            binding.Format += TimeOnlyToDateTime;
+            binding.Parse += DateTimeToTimeOnly;
+
+            var control = new DateTimePicker()
+            {
+                Format = DateTimePickerFormat.Time,
+                ShowUpDown = true,
+                Height = ControlHeight,
+                Width = ControlWidth,
+                DataBindings = { binding },
+            };
+            return control;
+        }
+
+        private Control GetCheckBox(PropertyInfo propertyInfo, object value)
+        {
+            var control = new CheckBox()
+            {
+                Height = ControlHeight,
+                Width = ControlWidth,
+                AutoSize = true,
+                DataBindings = { new Binding("Checked", value, propertyInfo.Name) },
+            };
+            return control;
+        }
+
+        public Control GetComboBox(PropertyInfo propertyInfo, object value)
+        {
+            var binding = new Binding("SelectedItem", value, propertyInfo.Name);
+            //binding.Format += TimeOnlyToDateTime;
+            //binding.Parse += DateTimeToTimeOnly;
+
+            var control = new ComboBox()
+            {
+                Height = ControlHeight,
+                Width = ControlWidth,
+            };
+            var values = Enum.GetValues(propertyInfo.PropertyType);
+            var enumValues = new List<EnumValue>();
+            foreach (var val in values)
+            {
+                enumValues.Add(new EnumValue(val.ToString()!, (int)val));
+            }
+
+            control.DisplayMember = "Display";
+            control.ValueMember = "Value";
+            //control.DataSource = enumValues;
+
+            var objects = new object[enumValues.Count];
+            for (int i = 0; i < enumValues.Count; i++)
+            {
+                objects[i] = enumValues[i];
+            }
+
+            control.Items.AddRange(objects);
+
+            control.DataBindings.Add(binding);
+            //control.DataBindings.Add(new Binding("SelectedItem", value, propertyInfo.Name));
+
+            return control;
+
+            
+        }
+
+        private void ButtonClickHandler(object? sender, EventArgs e)
+        {
+            if (sender is not Button button) return;
+
+            var form = button.FindForm();
+            if (form is null) return;
+
+            ResultAnimal = CurrentAnimal;
+            HasChanged = true;
+
+            MessageBox.Show(@"New values saved.");
+        }
+
+        private void DateTimeToDateOnly(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(DateOnly)) return;
+            if (e.Value is not DateTime dateTime) return;
+
+            e.Value = DateOnly.FromDateTime(dateTime);
+        }
+
+        private void DateOnlyToDateTime(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(DateTime)) return;
+            if (e.Value is not DateOnly dateOnly) return;
+
+            e.Value = dateOnly.ToDateTime(TimeOnly.Parse("0:00"));
+        }
+
+        private void DateTimeToTimeOnly(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(TimeOnly)) return;
+            if (e.Value is not DateTime dateTime) return;
+
+            e.Value = TimeOnly.FromDateTime(dateTime);
+        }
+
+        private void TimeOnlyToDateTime(object? sender, ConvertEventArgs e)
+        {
+            if (e.DesiredType != typeof(DateTime)) return;
+            if (e.Value is not TimeOnly timeOnly) return;
+
+            var date = new DateTime(2022, 1, 1);
+            e.Value = date + timeOnly.ToTimeSpan();
+        }
+
+        //private void EnumValueToTimeOnly(object? sender, ConvertEventArgs e)
+        //{
+        //    if (e.DesiredType != typeof(TimeOnly)) return;
+        //    if (e.Value is not DateTime dateTime) return;
+
+        //    e.Value = TimeOnly.FromDateTime(dateTime);
+        //}
+
+        //private void TimeOnlyToDateTime(object? sender, ConvertEventArgs e)
+        //{
+        //    if (e.DesiredType != typeof(DateTime)) return;
+        //    if (e.Value is not TimeOnly timeOnly) return;
+
+        //    var date = new DateTime(2022, 1, 1);
+        //    e.Value = date + timeOnly.ToTimeSpan();
+        //}
+
+        private Control GetControlByType(PropertyInfo propertyInfo, object value)
+        {
+            if (propertyInfo.PropertyType == Type.GetType("System.Int32"))
+                return GetNumberUpDown(propertyInfo, value);
+            if (propertyInfo.PropertyType == Type.GetType("System.String"))
+                return GetTextBox(propertyInfo, value);
+            if (propertyInfo.PropertyType == Type.GetType("System.DateOnly"))
+                return GetDatePiker(propertyInfo, value);
+            if (propertyInfo.PropertyType == Type.GetType("System.TimeOnly"))
+                return GetTimePiker(propertyInfo, value);
+            if (propertyInfo.PropertyType == Type.GetType("System.Boolean"))
+                return GetCheckBox(propertyInfo, value);
+            if (propertyInfo.PropertyType.IsEnum)
+                return GetComboBox(propertyInfo, value);
+            throw new Exception("No control creator for this type.");
+        }
+
+        private Animal GetCopy(Animal animal)
+        {
+            Animal newAnimal = GetNewAnimal(animal.GetType());
+            foreach (var property in animal.GetType().GetProperties())
+            {
+                var propertyType = property.PropertyType;
+                if (!propertyType.IsClass)
+                {
+                    var propertyValue = animal.GetType()?.GetProperty(property.Name)?.GetValue(animal);
+                    newAnimal.GetType()?.GetProperty(property.Name)?.SetValue(newAnimal, propertyValue);
+                }
+                else
+                {
+                    var propertyObject = property.GetValue(animal)!;
+                    foreach (var subProperty in propertyType.GetProperties())
+                    {
+                        var propertyValue = propertyType?.GetProperty(subProperty.Name)?.GetValue(propertyObject);
+                        propertyObject.GetType()?.GetProperty(subProperty.Name)?.SetValue(propertyObject, propertyValue);
+                    }
+                }
+            }
+
+            return newAnimal;
+        }
+
+        private Animal GetNewAnimal(Type type)
+        {
+            if (Activator.CreateInstance(type) is Animal animal)
+                return animal;
+            throw new Exception("GG");
+        }
+
+        private record EnumValue(string Display, int Value)
+        {
+            public string Display { get; set; } = Display;
+            public int Value { get; set; } = Value;
+        }
 
         private const int WindowHeight = 400;
 
@@ -77,310 +377,5 @@ namespace AnimalEditor.View
 
         private const int ButtonWidth = 100;
 
-        private void CreateForm()
-        {
-            var currentXOffset = 200;
-            var currentYOffset = 5;
-
-            Font = new Font(FontFamily.GenericSerif, 14);
-            Height = WindowHeight;
-            Width = WindowWidth;
-            StartPosition = FormStartPosition.CenterScreen;
-            Text = _mode == CreationMode.Edit ? @"Edit form" : @"Add form";
-
-            AutoScroll = true;
-
-            var label = new Label()
-            {
-                Top = currentYOffset,
-                Left = currentXOffset,
-                Text = _type.Name,
-                Height = ButtonHeight,
-                Width = ButtonWidth,
-            };
-            Controls.Add(label);
-            currentYOffset += ButtonHeight;
-
-            foreach (var propertyInfo in _type.GetProperties())
-            {
-                var panel = CreatePanel(propertyInfo);
-                panel.Top = currentYOffset;
-                Controls.Add(panel);
-
-                currentYOffset += panel.Height;
-            }
-
-            var button = new Button()
-            {
-                Top = currentYOffset,
-                Left = currentXOffset,
-                Text = _mode == CreationMode.Edit ? @"Edit" : @"Add",
-                Height = ButtonHeight,
-                Width = ButtonWidth,
-            };
-            button.Click += ButtonClickHandler;
-
-            Controls.Add(button);
-        }
-
-        private void ButtonClickHandler(object? sender, EventArgs e)
-        {
-            if (sender is not Button button) return;
-
-            var form = button.FindForm();
-            if (form is null) return;
-
-            _newValuesItself = GetNewValues(form);
-
-            ValuesItself = _newValuesItself;
-
-            MessageBox.Show(@"New values saved.");
-        }
-
-        private FlowLayoutPanel CreatePanel(PropertyInfo propertyInfo, object value)
-        {
-            var panel = new FlowLayoutPanel()
-            {
-                FlowDirection = FlowDirection.LeftToRight,
-                BorderStyle = BorderStyle.None,
-                WrapContents = false,
-                AutoSize = true,
-                Height = InnerPanelHeight,
-                AutoScroll = true,
-            };
-
-            var label = new Label()
-            {
-                Text = propertyInfo.Name + @":",
-                Height = ControlHeight,
-                Width = ControlWidth,
-                AutoSize = true,
-            };
-
-            var customControl = _mode == CreationMode.Edit ? GetControlByType(propertyInfo.PropertyType, value) 
-                                                            : GetControlByTypeWithDefaults(propertyInfo.PropertyType);
-            propertyControls.Add(propertyInfo, customControl);
-
-            panel.Controls.Add(label);
-            panel.Controls.Add(customControl);
-
-            return panel;
-        }
-
-        private Control GetControlByType(Type type, object value)
-        {
-            if (type == Type.GetType("System.Int32"))
-                return GetNumberUpDown(value);
-            if (type == Type.GetType("System.String"))
-                return GetTextBox(value);
-            if (type == Type.GetType("System.DateOnly"))
-                return GetDatePiker(value);
-            if (type == Type.GetType("System.TimeOnly"))
-                return GetTimePiker(value);
-            if (type == Type.GetType("System.Boolean"))
-                return GetCheckBox(value);
-            if (type.IsEnum)
-                return GetComboBox(type, value);
-            throw new Exception("No control creator for this type.");
-        }
-
-        private Control GetControlByTypeWithDefaults(Type type)
-        {
-            if (type == Type.GetType("System.Int32"))
-                return GetNumberUpDown(0);
-            if (type == Type.GetType("System.String"))
-                return GetTextBox("");
-            if (type == Type.GetType("System.DateOnly"))
-                return GetDatePiker(DateOnly.Parse("01.01.2000"));
-            if (type == Type.GetType("System.TimeOnly"))
-                return GetTimePiker(TimeOnly.Parse("00:00:00"));
-            if (type == Type.GetType("System.Boolean"))
-                return GetCheckBox(false);
-            if (type.IsEnum)
-            {
-                var values = Enum.GetValues(type);
-                return GetComboBox(type, values.GetValue(0)!);
-            }
-            throw new Exception("No control creator for this type.");
-        }
-
-        public Control GetTextBox(object value)
-        {
-            var control = new TextBox()
-            {
-                Height = ControlHeight,
-                Width = ControlWidth,
-                DataBindings = { Type.GetType(_) }
-            };
-            if (value is string str)
-            {
-                control.Text = str;
-            }
-            return control;
-        }
-
-        public Control GetNumberUpDown(object value)
-        {
-            var control = new NumericUpDown()
-            {
-                Height = ControlHeight,
-                Width = ControlWidth,
-            };
-            if (value is int number)
-            {
-                control.Value = number;
-            }
-            return control;
-        }
-
-        public Control GetDatePiker(object value)
-        {
-            var control = new DateTimePicker()
-            {
-                Format = DateTimePickerFormat.Custom,
-                CustomFormat = @"yyyy/MM/dd",
-                Height = ControlHeight,
-                Width = ControlWidth,
-            };
-            if (value is DateOnly date)
-            {
-                control.Value = date.ToDateTime(TimeOnly.Parse("0:00"));
-            }
-            return control;
-        }
-
-        public Control GetTimePiker(object value)
-        {
-            var control = new DateTimePicker()
-            {
-                Format = DateTimePickerFormat.Time,
-                ShowUpDown = true,
-                Height = ControlHeight,
-                Width = ControlWidth,
-            };
-            
-            var date = new DateTime(2022, 1, 1);
-            if (value is TimeOnly time)
-            {
-                control.Value = date + time.ToTimeSpan();
-            }
-            return control;
-        }
-
-        public Control GetComboBox(Type type, object value)
-        {
-            var control = new ComboBox()
-            {
-                Height = ControlHeight,
-                Width = ControlWidth,
-            };
-            var values = Enum.GetValues(type);
-            var enumValues = new List<EnumValue>();
-            foreach (var val in values)
-            {
-                enumValues.Add(new EnumValue(val.ToString()!, (int)val));
-            }
-
-            control.DisplayMember = "Display";
-            control.ValueMember = "Value";
-
-            var objects = new object[enumValues.Count];
-            for (int i = 0; i < enumValues.Count; i++)
-            {
-                objects[i] = enumValues[i];
-            }
-
-            control.Items.AddRange(objects);
-
-            if (!DBNull.Value.Equals(value))
-                control.SelectedIndex = (int)value;
-
-            return control;
-        }
-
-        private Control GetCheckBox(object value)
-        {
-            var control = new CheckBox()
-            {
-                Height = ControlHeight,
-                Width = ControlWidth,
-                AutoSize = true,
-            };
-            if (value is bool boolValue)
-            {
-                control.Checked = boolValue;
-            }
-            return control;
-        }
-
-        private record EnumValue(string Display, int Value)
-        {
-            public string Display { get; set; } = Display;
-            public int Value { get; set; } = Value;
-        }
-
-        private List<object> GetNewValues(Form form)
-        {
-            var list = new List<object>();
-
-            var controls = form.Controls;
-            var customControls = new List<Control>();
-            foreach (Control item in controls)
-            {
-                var subControls = item.Controls;
-                foreach (Control subControl in subControls)
-                {
-                    if (subControl is not Label)
-                    {
-                        customControls.Add(subControl);
-                    }
-                }
-            }
-
-            foreach (var item in customControls)
-            {
-                switch (item)
-                {
-                    case TextBox textBox:
-                        list.Add(textBox.Text);
-                        break;
-                    case NumericUpDown numericUpDown:
-                        list.Add(numericUpDown.Value);
-                        break;
-                    case ComboBox comboBox:
-                        var enumValue = comboBox.SelectedItem;
-                        if (enumValue is EnumValue ev)
-                        {
-                            list.Add(ev.Value);
-                        }
-                        else
-                        {
-                            throw new Exception("Rofl exception.");
-                        }
-                        break;
-                    case CheckBox checkBox:
-                        list.Add(checkBox.Checked);
-                        break;
-                    case DateTimePicker dateTimePicker:
-                        if (dateTimePicker.Format == DateTimePickerFormat.Custom)
-                        {
-                            string date = dateTimePicker.Value.ToLongDateString();
-                            var dateOnly = DateOnly.Parse(date);
-                            list.Add(dateOnly);
-                        }
-                        else
-                        {
-                            string time = dateTimePicker.Value.ToLongTimeString();
-                            var timeOnly = TimeOnly.Parse(time);
-                            list.Add(timeOnly);
-                        }
-                        break;
-                    
-                }
-            }
-
-            return list;
-        }
     }
-
 }

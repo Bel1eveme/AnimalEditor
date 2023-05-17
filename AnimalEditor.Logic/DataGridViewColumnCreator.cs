@@ -6,15 +6,10 @@ namespace AnimalEditor.Model
 {
     public static class DataGridViewColumnCreator
     {
-        private record EnumValue
+        private record EnumValue(string Display, int Value)
         {
-            public string Display { get; set; }
-            public int Value { get; set; }
-            public EnumValue(string display, int value)
-            {
-                Display = display;
-                Value = value;  
-            }
+            public string Display { get; set; } = Display;
+            public int Value { get; set; } = Value;
         }
         public static DataGridViewComboBoxColumn GetEnumColumn(PropertyInfo property)
         {
@@ -70,9 +65,9 @@ namespace AnimalEditor.Model
             return col;
         }
 
-        public static DataGridViewTextBoxColumn GetBoolColumn(PropertyInfo property)
+        public static DataGridViewCheckBoxColumn GetBoolColumn(PropertyInfo property)
         {
-            var col = new DataGridViewTextBoxColumn();
+            var col = new DataGridViewCheckBoxColumn();
             col.ValueType = typeof(bool);
             col.DataPropertyName = property.Name;
             col.Name = property.Name;

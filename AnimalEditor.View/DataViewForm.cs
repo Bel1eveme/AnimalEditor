@@ -13,7 +13,7 @@ namespace AnimalEditor.View
         {
             InitializeComponent();
 
-            _dataManager = new DataManager();
+            _dataManager = new DataManager(ReflexionAnalyzer.GetConcreteClasses());
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -31,20 +31,21 @@ namespace AnimalEditor.View
             foreach (var propertyInfo in type.GetProperties())
             {
                 Type propertyType = propertyInfo.PropertyType;
-                if (!propertyInfo.PropertyType.IsClass)
+                if (!propertyType.IsClass)
                 {
                     objectsDataGridView.Columns.Add(GetColumnByProperties(propertyInfo));
                 }
                 else
                 {
-                    foreach (var property in propertyInfo.PropertyType.GetProperties())
+                    foreach (var property in propertyType.GetProperties())
                     {
                         objectsDataGridView.Columns.Add(GetColumnByProperties(property));
+                        objectsDataGridView.Columns[^1].HeaderText = propertyType.Name +
+                                                                     objectsDataGridView.Columns[^1].HeaderText;
                     }
                 }
             }
-
-            var col = objectsDataGridView.Columns[0].Visible = false;
+            objectsDataGridView.Columns[0].Visible = false;
 
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(type);
         }
@@ -68,6 +69,7 @@ namespace AnimalEditor.View
         private DataGridViewColumn GetColumnByProperties(PropertyInfo propertyInfo)
         {
             var type = propertyInfo.PropertyType;
+
             if (type == Type.GetType("System.Int32"))
                 return DataGridViewColumnCreator.GetIntColumn(propertyInfo);
             if (type == Type.GetType("System.String"))
@@ -80,17 +82,17 @@ namespace AnimalEditor.View
                 return DataGridViewColumnCreator.GetBoolColumn(propertyInfo);
             if (type.IsEnum)
                 return DataGridViewColumnCreator.GetEnumColumn(propertyInfo);
+
             throw new Exception("No column creator for this type.");
         }
 
         private void deleteButton_Click(object sender, EventArgs e)
         {
-            if (objectsDataGridView.SelectedRows.Count > 0 && !objectsDataGridView.SelectedRows[0].IsNewRow)
-            {
-                var selectedRow = objectsDataGridView.SelectedRows[0].Index;
-                var id = objectsDataGridView.Rows[selectedRow].Cells[0].Value;
-                _dataManager.Remove(GetCurrentType(), (int)id);
-            }
+            if (objectsDataGridView.SelectedRows.Count <= 0 || objectsDataGridView.SelectedRows[0].IsNewRow) return;
+
+            var selectedRow = objectsDataGridView.SelectedRows[0].Index;
+            var id = objectsDataGridView.Rows[selectedRow].Cells[0].Value;
+            _dataManager.Remove(GetCurrentType(), (int)id);
 
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(GetCurrentType());
             Console.WriteLine(@"Row removed.");
@@ -102,40 +104,31 @@ namespace AnimalEditor.View
 
             var selectedRow = objectsDataGridView.SelectedRows[0].Index;
             var id = objectsDataGridView.Rows[selectedRow].Cells[0].Value;
-            var values = new List<(string, Type, object)>();
-            for (var i = 1; i < objectsDataGridView.ColumnCount; i++)
-            {
-                values.Add((objectsDataGridView.Columns[i].Name, objectsDataGridView.Columns[i].ValueType, objectsDataGridView.Rows[selectedRow].Cells[i].Value));
-            }
-            var form = new EditForm(GetCurrentType(), values, EditForm.CreationMode.Edit);
+
+            var form = new EditForm(_dataManager.GetById(GetCurrentType(), (int)id));
 
             form.Shown += (o, args) => Enabled = false;
             form.Closed += (o, args) => Enabled = true;
             form.ShowDialog();
 
-            var newValues = form.ValuesItself;
-
-            _dataManager.Edit(GetCurrentType(), (int)id, newValues.ToArray());
+            var animal = form.CurrentAnimal;
+            _dataManager.Edit(GetCurrentType(), (int)id, animal);
 
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(GetCurrentType());
             Console.WriteLine(@"Row changed.");
         }
 
-        private void saveButton_Click(object sender, EventArgs e)
+        private void addButton_Click(object sender, EventArgs e)
         {
-            var values = new List<(string, Type, object)>();
-            for (var i = 1; i < objectsDataGridView.ColumnCount; i++)
-            {
-                values.Add((objectsDataGridView.Columns[i].Name, objectsDataGridView.Columns[i].ValueType, null));
-            }
-            var form = new EditForm(GetCurrentType(), values, EditForm.CreationMode.Add);
+            var form = new EditForm(GetCurrentType());
 
             form.Shown += (o, args) => Enabled = false;
             form.Closed += (o, args) => Enabled = true;
             form.ShowDialog();
-            var newValues = form.ValuesItself;
-            _dataManager.Add(GetCurrentType(), newValues.ToArray());
 
+            if (!form.HasChanged) return;
+
+            _dataManager.Add(GetCurrentType(), form.CurrentAnimal);
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(GetCurrentType());
             Console.WriteLine(@"Row added.");
         }

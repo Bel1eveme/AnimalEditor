@@ -1,13 +1,13 @@
 ﻿namespace AnimalEditor.Model.Animals
 {
-    internal enum DogBreed
+    public enum DogBreed
     {
         Sheepdog,
         Bulldog,
         Terrier,
         Spaniel
     }
-    internal class Dog : Mammal
+    public class Dog : Mammal
     {
         public DogBreed Breed { get; set; }
 
@@ -15,5 +15,7 @@
         {
             Breed = breed;
         }
+
+        public Dog() { }
     }
 }

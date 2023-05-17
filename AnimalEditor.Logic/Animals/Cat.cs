@@ -15,5 +15,7 @@
         {
             Color = color;
         }
+
+        public Cat() { }
     }
 }

@@ -6,10 +6,11 @@ namespace AnimalEditor.Model
 {
     public class DataManager
     {
-        private Dictionary<Type, Dictionary<int, Animal>> _animals = new Dictionary<Type, Dictionary<int, Animal>>();
+        private readonly Dictionary<Type, Dictionary<int, Animal>> _animals;
 
         public DataManager(List<Type> types)
         {
+            _animals = new Dictionary<Type, Dictionary<int, Animal>>();
             types.ForEach(x => _animals.Add(x, new Dictionary<int, Animal>()));
         }
         public DataTable CreateDataTable(Type type)
@@ -45,10 +46,7 @@ namespace AnimalEditor.Model
                 list.AddRange(GetObjectValues(type, item.Value));
 
                 object[] values = list.Select(x => x.Item2).ToArray();
-                foreach (var prop in list)
-                {
-                    table.Rows.Add(values);
-                }
+                table.Rows.Add(values);
             }
 
             return table;
@@ -56,12 +54,7 @@ namespace AnimalEditor.Model
 
         public void Add(Type type, Animal animal)
         {
-            _animals[type].Add(GetNextKey<Animal>(_animals[type]), animal);
-        }
-
-        public void Add(Type type, Animal animal, int id)
-        {
-            _animals[type].Add(id, animal);
+            _animals[type].Add(GetNextKey(_animals[type]), animal);
         }
 
         public void Remove(Type type, int id)
@@ -71,12 +64,18 @@ namespace AnimalEditor.Model
 
         public void Edit(Type type, int id, Animal animal)
         {
-            Remove(type, id);
-            Add(type, animal, id);
+            _animals[type][id] = animal;
+        }
+
+        public Animal GetById(Type type, int id)
+        {
+            return _animals[type][id];
         }
 
         public static int GetNextKey<T>(Dictionary<int, T> dictionary)
         {
+            if (dictionary.Count == 0) return 1;
+
             var min = dictionary.Keys.Min();
             var max = dictionary.Keys.Max();
 
@@ -88,45 +87,24 @@ namespace AnimalEditor.Model
             var list = new List<(string, object)>();
             foreach (var propertyInfo in type.GetProperties())
             {
-                if (!propertyInfo.PropertyType.IsClass)
+                var propertyType = propertyInfo.PropertyType;
+                if (!propertyType.IsClass)
                 {
                     list.Add((propertyInfo.Name, propertyInfo.GetValue(animal)!));
                 }
                 else
                 {
-                    foreach (var subPropertyInfo in propertyInfo.PropertyType.GetProperties())
-                        list.Add((propertyInfo.Name, propertyInfo.GetValue(animal)!));
+                    var propertyObject = propertyInfo.GetValue(animal);
+                    foreach (var subPropertyInfo in propertyType.GetProperties())
+                    {
+                        var value = propertyType?.GetProperty(subPropertyInfo.Name)?.GetValue(propertyObject);
+                        list.Add((subPropertyInfo.Name, value!));
+                    }
                 }
             }
 
             return list;
         }
-
-        //public void Add(Type type, object[] values)
-        //{
-        //    var table = _tables[type];
-        //    var newValues = new object[values.Length + 1];
-        //    newValues[0] = null;
-        //    for (int i = 1; i < newValues.Length; i++)
-        //        newValues[i] = values[i - 1];
-        //    table.Rows.Add(newValues);
-        //}
-
-        //public void Remove(Type type, int id)
-        //{
-        //    var table = _tables[type];
-        //    DataRow dr = table.Select($"Id={id}").FirstOrDefault();
-        //    if (dr != null)
-        //    {
-        //        table.Rows.Remove(dr);
-        //    }
-        //}
-
-        //public void Edit(Type type, int id, object[] values)
-        //{
-        //    Remove(type, id);
-        //    Add(type, values);
-        //}
 
     }
 }

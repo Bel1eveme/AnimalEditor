@@ -1,6 +1,6 @@
 ﻿namespace AnimalEditor.Model.Animals
 {
-    internal abstract class Bird : Animal
+    public abstract class Bird : Animal
     {
         public Nest CurrentNest { get; set; }
 
@@ -10,6 +10,11 @@
         {
             MaxFlightHeight = maxFlightHeight;
             CurrentNest = nest; 
+        }
+
+        protected Bird()
+        {
+            CurrentNest = new Nest();
         }
     }
 }
