@@ -274,9 +274,9 @@ namespace AnimalEditor.View
         private void CustomEnumValueToEnumValue(object? sender, ConvertEventArgs e)
         {
             if (e.DesiredType != typeof(EnumValue)) return;
-            if (e.Value is not CatColor catColor) return;
+            if (e.Value is not CatColor customEnumValue) return;
 
-            e.Value = new EnumValue(e.Value.ToString()!, (int)e.Value);
+            e.Value = new EnumValue(customEnumValue.ToString()!, (int)customEnumValue);
         }
 
         private void EnumValueToCustomEnumValue(object? sender, ConvertEventArgs e)
