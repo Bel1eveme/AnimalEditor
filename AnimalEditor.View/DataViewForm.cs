@@ -1,8 +1,6 @@
-using System.CodeDom;
 using System.Reflection;
-using System.Windows.Forms;
+
 using AnimalEditor.Model;
-using AnimalEditor.Model.Animals;
 
 namespace AnimalEditor.View
 {
@@ -24,13 +22,13 @@ namespace AnimalEditor.View
 
         private void BuildDataGridView(Type type)
         {
-            ClearDataGridView(objectsDataGridView);
+            ClearDataGridView();
 
             objectsDataGridView.Columns.Add(DataGridViewColumnCreator.GetIdColumn());
 
             foreach (var propertyInfo in type.GetProperties())
             {
-                Type propertyType = propertyInfo.PropertyType;
+                var propertyType = propertyInfo.PropertyType;
                 if (!propertyType.IsClass)
                 {
                     objectsDataGridView.Columns.Add(GetColumnByProperties(propertyInfo));
@@ -49,11 +47,11 @@ namespace AnimalEditor.View
 
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(type);
         }
-        private void ClearDataGridView(DataGridView dataGridView)
+        private void ClearDataGridView()
         {
-            dataGridView.DataSource = null;
-            dataGridView.Rows.Clear();
-            dataGridView.Columns.Clear();
+            objectsDataGridView.DataSource = null;
+            objectsDataGridView.Rows.Clear();
+            objectsDataGridView.Columns.Clear();
         }
 
         private void classDomainUpDown_SelectedItemChanged(object sender, EventArgs e)
@@ -66,7 +64,7 @@ namespace AnimalEditor.View
             return ReflexionAnalyzer.GetTypeByString(classDomainUpDown.SelectedItem.ToString()!);
         }
 
-        private DataGridViewColumn GetColumnByProperties(PropertyInfo propertyInfo)
+        private static DataGridViewColumn GetColumnByProperties(PropertyInfo propertyInfo)
         {
             var type = propertyInfo.PropertyType;
 
@@ -106,9 +104,6 @@ namespace AnimalEditor.View
             var id = objectsDataGridView.Rows[selectedRow].Cells[0].Value;
 
             var form = new EditForm(_dataManager.GetById(GetCurrentType(), (int)id));
-
-            form.Shown += (o, args) => Enabled = false;
-            form.Closed += (o, args) => Enabled = true;
             form.ShowDialog();
 
             var animal = form.CurrentAnimal;
@@ -121,9 +116,6 @@ namespace AnimalEditor.View
         private void addButton_Click(object sender, EventArgs e)
         {
             var form = new EditForm(GetCurrentType());
-
-            form.Shown += (o, args) => Enabled = false;
-            form.Closed += (o, args) => Enabled = true;
             form.ShowDialog();
 
             if (!form.HasChanged) return;

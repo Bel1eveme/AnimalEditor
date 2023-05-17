@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Dynamic;
+
 using AnimalEditor.Model.Animals;
 
 namespace AnimalEditor.Model
@@ -19,12 +19,8 @@ namespace AnimalEditor.Model
 
             DataColumn idColumn = new DataColumn("Id", Type.GetType("System.Int32")!);
             idColumn.Unique = true;
-            //idColumn.AllowDBNull = false;
-            //idColumn.AutoIncrement = true;
-            //idColumn.AutoIncrementSeed = 1;
-            //idColumn.AutoIncrementStep = 1;
             table.Columns.Add(idColumn);
-            table.PrimaryKey = new DataColumn[] { table.Columns["Id"]! };
+            table.PrimaryKey = new[] { table.Columns["Id"]! };
 
             foreach (var propertyInfo in type.GetProperties())
             {
@@ -45,7 +41,7 @@ namespace AnimalEditor.Model
                 var list = new List<(string, object)>(){ ("Id", id) };
                 list.AddRange(GetObjectValues(type, item.Value));
 
-                object[] values = list.Select(x => x.Item2).ToArray();
+                var values = list.Select(x => x.Item2).ToArray();
                 table.Rows.Add(values);
             }
 

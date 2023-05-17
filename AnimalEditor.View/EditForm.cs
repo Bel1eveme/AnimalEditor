@@ -202,14 +202,15 @@ namespace AnimalEditor.View
         public Control GetComboBox(PropertyInfo propertyInfo, object value)
         {
             var binding = new Binding("SelectedItem", value, propertyInfo.Name);
-            binding.Format += CustomEnumValueToEnumValue;
-            binding.Parse += EnumValueToCustomEnumValue;
+            //binding.Format += CustomEnumValueToEnumValue;
+            //binding.Parse += EnumValueToCustomEnumValue;
 
             var control = new ComboBox()
             {
                 Height = ControlHeight,
                 Width = ControlWidth,
             };
+            control.SelectionChangeCommitted += ForceComboBoxChange;
             var values = Enum.GetValues(propertyInfo.PropertyType);
             var enumValues = new List<EnumValue>();
             foreach (var val in values)
@@ -285,6 +286,13 @@ namespace AnimalEditor.View
             if (e.Value is not EnumValue enumValue) return;
 
             e.Value = enumValue.Value;
+        }
+
+        private void ForceComboBoxChange(object? sender, EventArgs e)
+        {
+            if (sender is not ComboBox comboBox) return;
+
+            comboBox.DataBindings["SelectedItem"]?.WriteValue();
         }
 
         private Control GetControlByType(PropertyInfo propertyInfo, object value)

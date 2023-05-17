@@ -1,8 +1,6 @@
-﻿using System.Windows.Forms;
-using System.Reflection;
+﻿using System.Reflection;
 
-
-namespace AnimalEditor.Model
+namespace AnimalEditor.View
 {
     public static class DataGridViewColumnCreator
     {
