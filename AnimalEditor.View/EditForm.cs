@@ -209,18 +209,19 @@ namespace AnimalEditor.View
             {
                 Height = ControlHeight,
                 Width = ControlWidth,
+                DataSource = Enum.GetValues(propertyInfo.PropertyType),
             };
-            control.SelectionChangeCommitted += ForceComboBoxChange;
-            var values = Enum.GetValues(propertyInfo.PropertyType);
-            var enumValues = new List<EnumValue>();
-            foreach (var val in values)
-            {
-                enumValues.Add(new EnumValue(val.ToString()!, (int)val));
-            }
+            //control.SelectionChangeCommitted += ForceComboBoxChange;
+            //var values = Enum.GetValues(propertyInfo.PropertyType);
+            //var enumValues = new List<EnumValue>();
+            //foreach (var val in values)
+            //{
+            //    enumValues.Add(new EnumValue(val.ToString()!, (int)val));
+            //}
 
-            control.DisplayMember = "Display";
-            control.ValueMember = "Value";
-            control.DataSource = enumValues;
+            //control.DisplayMember = "Display";
+            //control.ValueMember = "Value";
+            //control.DataSource = enumValues;
             control.DataBindings.Add(binding);
 
             return control;
@@ -326,10 +327,11 @@ namespace AnimalEditor.View
                 else
                 {
                     var propertyObject = property.GetValue(animal)!;
+                    var newPropertyObject = property.GetValue(newAnimal)!;
                     foreach (var subProperty in propertyType.GetProperties())
                     {
                         var propertyValue = propertyType?.GetProperty(subProperty.Name)?.GetValue(propertyObject);
-                        propertyObject.GetType()?.GetProperty(subProperty.Name)?.SetValue(propertyObject, propertyValue);
+                        newPropertyObject.GetType()?.GetProperty(subProperty.Name)?.SetValue(newPropertyObject, propertyValue);
                     }
                 }
             }
