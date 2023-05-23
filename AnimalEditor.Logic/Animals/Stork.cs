@@ -8,6 +8,11 @@
             BeakLength = beakLength;
         }
 
+        public Stork(DateOnly birthDate, int maxFlightHeight, int capacity, bool isUsed, int beakLength) : base(birthDate, maxFlightHeight, capacity, isUsed)
+        {
+            BeakLength = beakLength;
+        }
+
         public Stork() { }
     }
 }

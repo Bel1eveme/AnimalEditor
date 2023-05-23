@@ -1,4 +1,5 @@
 using System.Reflection;
+
 using AnimalEditor.Model.Animals;
 
 namespace AnimalEditor.View
@@ -68,7 +69,7 @@ namespace AnimalEditor.View
             foreach (var propertyInfo in _type.GetProperties())
             {
                 var propertyType = propertyInfo.PropertyType;
-                if (!propertyType.IsClass)
+                if (!propertyType.IsClass || propertyType == typeof(string))
                 {
                     var panel = CreatePanel(propertyInfo, CurrentAnimal);
                     panel.Top = currentYOffset;
@@ -202,27 +203,14 @@ namespace AnimalEditor.View
         public Control GetComboBox(PropertyInfo propertyInfo, object value)
         {
             var binding = new Binding("SelectedItem", value, propertyInfo.Name);
-            //binding.Format += CustomEnumValueToEnumValue;
-            //binding.Parse += EnumValueToCustomEnumValue;
 
             var control = new ComboBox()
             {
                 Height = ControlHeight,
                 Width = ControlWidth,
                 DataSource = Enum.GetValues(propertyInfo.PropertyType),
+                DataBindings = { binding },
             };
-            //control.SelectionChangeCommitted += ForceComboBoxChange;
-            //var values = Enum.GetValues(propertyInfo.PropertyType);
-            //var enumValues = new List<EnumValue>();
-            //foreach (var val in values)
-            //{
-            //    enumValues.Add(new EnumValue(val.ToString()!, (int)val));
-            //}
-
-            //control.DisplayMember = "Display";
-            //control.ValueMember = "Value";
-            //control.DataSource = enumValues;
-            control.DataBindings.Add(binding);
 
             return control;
         }
@@ -319,7 +307,7 @@ namespace AnimalEditor.View
             foreach (var property in animal.GetType().GetProperties())
             {
                 var propertyType = property.PropertyType;
-                if (!propertyType.IsClass)
+                if (!propertyType.IsClass || propertyType == typeof(string))
                 {
                     var propertyValue = animal.GetType()?.GetProperty(property.Name)?.GetValue(animal);
                     newAnimal.GetType()?.GetProperty(property.Name)?.SetValue(newAnimal, propertyValue);

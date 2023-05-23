@@ -6,7 +6,7 @@ namespace AnimalEditor.Model
 {
     public class DataManager
     {
-        private readonly Dictionary<Type, Dictionary<int, Animal>> _animals;
+        private Dictionary<Type, Dictionary<int, Animal>> _animals;
 
         public DataManager(List<Type> types)
         {
@@ -17,16 +17,17 @@ namespace AnimalEditor.Model
         {
             var table = new DataTable();
 
-            DataColumn idColumn = new DataColumn("Id", Type.GetType("System.Int32")!);
+            var idColumn = new DataColumn("Id", Type.GetType("System.Int32")!);
             idColumn.Unique = true;
             table.Columns.Add(idColumn);
             table.PrimaryKey = new[] { table.Columns["Id"]! };
 
             foreach (var propertyInfo in type.GetProperties())
             {
-                if (!propertyInfo.PropertyType.IsClass)
+                if (!propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string))
                 {
                     table.Columns.Add(new DataColumn(propertyInfo.Name, propertyInfo.PropertyType));
+              
                 }
                 else
                 {
@@ -75,7 +76,9 @@ namespace AnimalEditor.Model
             var min = dictionary.Keys.Min();
             var max = dictionary.Keys.Max();
 
-            return Enumerable.Range(min, max - min).Except(dictionary.Keys).First();
+            var result = Enumerable.Range(min, max - min).Except(dictionary.Keys).FirstOrDefault();
+
+            return result == default ? max + 1 : result ;
         }
 
         private static List<(string, object)> GetObjectValues(Type type, Animal animal)
@@ -84,7 +87,7 @@ namespace AnimalEditor.Model
             foreach (var propertyInfo in type.GetProperties())
             {
                 var propertyType = propertyInfo.PropertyType;
-                if (!propertyType.IsClass)
+                if (!propertyType.IsClass || propertyType == typeof(string))
                 {
                     list.Add((propertyInfo.Name, propertyInfo.GetValue(animal)!));
                 }
@@ -100,6 +103,36 @@ namespace AnimalEditor.Model
             }
 
             return list;
+        }
+
+        public List<Animal> GetAnimalList()
+        {
+            var animals = new List<Animal>();
+            var dictionaries = _animals.Select(x => x.Value);
+
+            foreach (var dictionary in dictionaries)
+            {
+                animals.AddRange(dictionary.Select(animal => animal.Value));
+            }
+
+            return animals;
+        }
+
+        public void SetAnimalsFromList(List<Animal> animals, List<Type> types)
+        {
+            _animals = new Dictionary<Type, Dictionary<int, Animal>>();
+            types.ForEach(x => _animals.Add(x, new Dictionary<int, Animal>()));
+
+            foreach (var animal in animals)
+            {
+                foreach (var type in types)
+                {
+                    if (animal.GetType().IsAssignableTo(type))
+                    {
+                        _animals[type].Add(GetNextKey(_animals[type]), animal);
+                    }
+                }
+            }
         }
 
     }

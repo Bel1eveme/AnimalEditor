@@ -8,6 +8,11 @@
         {
             HuntStartTime = huntStartTime;
         }
+        
+        public Owl(DateOnly birthDate, int maxFlightHeight, int capacity, bool isUsed, TimeOnly huntStartTime) : base(birthDate, maxFlightHeight, capacity, isUsed) 
+        {
+            HuntStartTime = huntStartTime;
+        }
 
         public Owl() { }
     }

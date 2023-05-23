@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimalEditor.Model", "AnimalEditor.Logic\AnimalEditor.Model.csproj", "{34702979-C4EE-4DCA-BE36-B8840FBFC7B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimalEditor.View", "AnimalEditor.View\AnimalEditor.View.csproj", "{38AD2F88-1B91-4547-B663-95499CA71654}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimalEditor.View", "AnimalEditor.View\AnimalEditor.View.csproj", "{38AD2F88-1B91-4547-B663-95499CA71654}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

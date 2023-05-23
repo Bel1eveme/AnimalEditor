@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -10,6 +10,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AnimalEditor.Logic\AnimalEditor.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CommonInterfaces.Plugins">
+      <HintPath>..\CommonInterfaces\CommonInterfaces\CommonInterfaces.Plugins\bin\Debug\net7.0\CommonInterfaces.Plugins.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

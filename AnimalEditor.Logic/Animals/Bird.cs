@@ -12,6 +12,12 @@
             CurrentNest = nest; 
         }
 
+        protected Bird(DateOnly birthDate, int maxFlightHeight, int capacity, bool isUsed) : base(birthDate)
+        {
+            MaxFlightHeight = maxFlightHeight;
+            CurrentNest = new Nest(capacity, isUsed);
+        }
+
         protected Bird()
         {
             CurrentNest = new Nest();

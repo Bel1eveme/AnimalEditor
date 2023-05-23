@@ -6,6 +6,7 @@ namespace AnimalEditor.View
 {
     public partial class DataViewForm : Form
     {
+
         private readonly DataManager _dataManager;
         public DataViewForm()
         {
@@ -29,7 +30,7 @@ namespace AnimalEditor.View
             foreach (var propertyInfo in type.GetProperties())
             {
                 var propertyType = propertyInfo.PropertyType;
-                if (!propertyType.IsClass)
+                if (!propertyType.IsClass || propertyType == typeof(string))
                 {
                     objectsDataGridView.Columns.Add(GetColumnByProperties(propertyInfo));
                 }
@@ -56,12 +57,17 @@ namespace AnimalEditor.View
 
         private void classDomainUpDown_SelectedItemChanged(object sender, EventArgs e)
         {
+            UpdateTable();
+        }
+
+        private void UpdateTable()
+        {
             BuildDataGridView(GetCurrentType());
         }
 
         private Type GetCurrentType()
         {
-            return ReflexionAnalyzer.GetTypeByString(classDomainUpDown.SelectedItem.ToString()!);
+            return ReflexionAnalyzer.GetTypeByString(classDomainUpDown?.SelectedItem?.ToString()!);
         }
 
         private static DataGridViewColumn GetColumnByProperties(PropertyInfo propertyInfo)
@@ -123,6 +129,19 @@ namespace AnimalEditor.View
             _dataManager.Add(GetCurrentType(), form.CurrentAnimal);
             objectsDataGridView.DataSource = _dataManager.CreateDataTable(GetCurrentType());
             Console.WriteLine(@"Row added.");
+        }
+
+        private void openToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            var form = new OpenForm(_dataManager);
+            form.ShowDialog();
+            UpdateTable();
+        }
+
+        private void saveToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            var form = new SaveForm(_dataManager);
+            form.ShowDialog();
         }
     }
 }

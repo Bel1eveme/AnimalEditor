@@ -8,7 +8,6 @@ namespace AnimalEditor.Model
     {
         private static bool IsRequiredSubclass(Type type, List<Type> animalSuperClasses)
         {
-            var assembly = Assembly.GetExecutingAssembly();
             return animalSuperClasses.Any(currentAnimalSuperclass => type.BaseType == currentAnimalSuperclass);
         }
 

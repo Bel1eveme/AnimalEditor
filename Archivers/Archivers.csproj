@@ -6,17 +6,24 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
   </ItemGroup>
 
-	<ItemGroup>
+  <ItemGroup>
     <Reference Include="CommonInterfaces.Plugins">
       <HintPath>..\CommonInterfaces\CommonInterfaces\CommonInterfaces.Plugins\bin\Debug\net7.0\CommonInterfaces.Plugins.dll</HintPath>
     </Reference>
-    <Reference Include="System.Windows.Forms">
-      <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Windows.Forms.dll</HintPath>
-    </Reference>
   </ItemGroup>
+
+
 
 </Project>
